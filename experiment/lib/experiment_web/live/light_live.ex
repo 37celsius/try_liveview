@@ -17,6 +17,9 @@ defmodule ExperimentWeb.LightLive do
     ~L"""
       <h1>Change the number</h1>
       <div><%= @brightness %></div>
+      <form phx-change="slider-brightness">
+        <input type="range" name="brightnessupdate" min="0" max="100" value="<%= @brightness %>" >
+      </form>
       <button phx-click="max-button">make it 100</button>
       <button phx-click="min">minus 10</button>
       <button phx-click="add">add 10</button>
@@ -44,5 +47,11 @@ defmodule ExperimentWeb.LightLive do
 
   def handle_event("add", _, socket) do
     {:noreply, update(socket, :brightness, &min(&1 + 10, 100))}
+  end
+
+  # using the second argument we capture the value in map
+  def handle_event("slider-brightness", %{"brightnessupdate" => brightnessupdate}, socket) do
+    brightness = String.to_integer(brightnessupdate)
+    {:noreply, assign(socket, brightness: brightness)}
   end
 end
