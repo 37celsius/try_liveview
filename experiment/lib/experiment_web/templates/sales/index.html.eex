@@ -1,0 +1,2 @@
+<h3>This is from template layout and below is from LiveView</h3>
+<%= live_render(@conn, ExperimentWeb.SalesDashboardLive) %>

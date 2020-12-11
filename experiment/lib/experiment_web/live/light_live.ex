@@ -1,21 +1,45 @@
 defmodule ExperimentWeb.LightLive do
   use ExperimentWeb, :live_view
 
+  use Timex
+
   # Mount callback is the first one invoke
   # params = map containing query parameters as well as any router params
   # session = contain private session data
   # socket = contain a struct
 
   def mount(_params, _session, socket) do
+    # introducing timer
+    if connected?(socket) do
+      :timer.send_interval(1000, self(), :tick)
+    end
+
+    # introducing timer, Timex is a dependencies https://hexdocs.pm/timex/getting-started.html
+    # below code, from Timex, grab time now, shift one hour, ie 12:30 becomes 13:30
+    expiration_time = Timex.shift(Timex.now(), hours: 1)
+
     # IO.inspect(assign(socket, :brightness, 50))
     # below is assign a value of brightness to 50 as initial state
-    {:ok, assign(socket, :brightness, 50)}
+    # with time_remaining, we put from expiration_time ie: 13:30 and do Timex.diff(13:30, 12:30)
+    {:ok,
+     assign(socket,
+       brightness: 50,
+       expiration_time: expiration_time,
+       time_remaining: time_remaining(expiration_time)
+     )}
   end
 
   # assigns is from the function assign() in mount
   def render(assigns) do
     ~L"""
       <h1>Change the number</h1>
+      <p class="m-4 font-semibold text-indigo-800">
+        <%= if @time_remaining > 0 do %>
+          <%= format_time(@time_remaining) %> left to play with brightness
+        <% else %>
+          stop looking at the monitor and go outside
+        <% end %>
+      </p>
       <div><%= @brightness %></div>
       <form phx-change="slider-brightness">
         <input type="range" name="brightnessupdate" min="0" max="100" value="<%= @brightness %>" >
@@ -53,5 +77,26 @@ defmodule ExperimentWeb.LightLive do
   def handle_event("slider-brightness", %{"brightnessupdate" => brightnessupdate}, socket) do
     brightness = String.to_integer(brightnessupdate)
     {:noreply, assign(socket, brightness: brightness)}
+  end
+
+  def handle_info(:tick, socket) do
+    # capture the expiration_time from the socket.assigns
+    expiration_time = socket.assigns.expiration_time
+
+    # update the time remaining with inputing the captured expiration_time from the socket
+    {:noreply, assign(socket, time_remaining: time_remaining(expiration_time))}
+  end
+
+  defp time_remaining(expiration_time) do
+    # diff(datetime1, datetime2, unit \\ :second)
+    # subtracts datetime2 from datetime1
+    # below case, get time now and subtract from whatever the expiration_time is
+    DateTime.diff(expiration_time, Timex.now())
+  end
+
+  defp format_time(time) do
+    time
+    |> Timex.Duration.from_seconds()
+    |> Timex.format_duration(:humanized)
   end
 end
