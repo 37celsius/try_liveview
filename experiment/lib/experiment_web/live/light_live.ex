@@ -25,7 +25,8 @@ defmodule ExperimentWeb.LightLive do
      assign(socket,
        brightness: 50,
        expiration_time: expiration_time,
-       time_remaining: time_remaining(expiration_time)
+       time_remaining: time_remaining(expiration_time),
+       tempr: 3000
      )}
   end
 
@@ -48,6 +49,19 @@ defmodule ExperimentWeb.LightLive do
       <button phx-click="min">minus 10</button>
       <button phx-click="add">add 10</button>
       <button phx-click="min-button">make it 0</button>
+
+      <div>
+        <p>Current Light Temprature: <%= @tempr %> and the color code is: <%= temp_color(@tempr) %></p>
+      </div>
+
+      <form phx-change="tempr-change">
+        <input type="radio" id="3000" name="tempr" value="3000" <%= if @tempr === 3000, do: "checked" %> />
+        <label for="3000">3000</label>
+        <input type="radio" id="4000" name="tempr" value="4000" <%= if @tempr === 4000, do: "checked" %> />
+        <label for="4000">4000</label>
+        <input type="radio" id="5000" name="tempr" value="5000" <%= if @tempr === 5000, do: "checked" %> />
+        <label for="5000">5000</label>
+      </form>
     """
   end
 
@@ -79,6 +93,11 @@ defmodule ExperimentWeb.LightLive do
     {:noreply, assign(socket, brightness: brightness)}
   end
 
+  def handle_event("tempr-change", %{"tempr" => tempr}, socket) do
+    tempr = String.to_integer(tempr)
+    {:noreply, assign(socket, tempr: tempr)}
+  end
+
   def handle_info(:tick, socket) do
     # capture the expiration_time from the socket.assigns
     expiration_time = socket.assigns.expiration_time
@@ -99,4 +118,8 @@ defmodule ExperimentWeb.LightLive do
     |> Timex.Duration.from_seconds()
     |> Timex.format_duration(:humanized)
   end
+
+  defp temp_color(3000), do: "#F1C40D"
+  defp temp_color(4000), do: "#FEFF66"
+  defp temp_color(5000), do: "#99CCFF"
 end
