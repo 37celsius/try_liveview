@@ -55,12 +55,10 @@ defmodule ExperimentWeb.LightLive do
       </div>
 
       <form phx-change="tempr-change">
-        <input type="radio" id="3000" name="tempr" value="3000" <%= if @tempr === 3000, do: "checked" %> />
-        <label for="3000">3000</label>
-        <input type="radio" id="4000" name="tempr" value="4000" <%= if @tempr === 4000, do: "checked" %> />
-        <label for="4000">4000</label>
-        <input type="radio" id="5000" name="tempr" value="5000" <%= if @tempr === 5000, do: "checked" %> />
-        <label for="5000">5000</label>
+        <input type="hidden" value="" name="tempr" />
+        <%= for temp <- [3000, 4000, 5000] do %>
+          <%= temp_radio_button(%{temp: temp, checked: temp == @tempr}) %>
+        <% end %>
       </form>
     """
   end
@@ -117,6 +115,14 @@ defmodule ExperimentWeb.LightLive do
     time
     |> Timex.Duration.from_seconds()
     |> Timex.format_duration(:humanized)
+  end
+
+  # Anytime you have LiveView template like the below expect variable call "assigns" that is a map
+  defp temp_radio_button(assigns) do
+    ~L"""
+      <input type="radio" id="<%= @temp %>" name="tempr" value="<%= @temp %>" <%= if @checked, do: "checked" %> />
+      <label for="<%= @temp %>"><%= @temp %></label>
+    """
   end
 
   defp temp_color(3000), do: "#F1C40D"
