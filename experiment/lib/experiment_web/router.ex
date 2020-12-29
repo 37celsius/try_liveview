@@ -22,6 +22,7 @@ defmodule ExperimentWeb.Router do
     live("/sales-dashboard", SalesDashboardLive)
     get("/sales", SalesController, :index)
     live("/search", SearchLive)
+    live("/filter", FilterLive)
   end
 
   # Other scopes may use custom stacks.
